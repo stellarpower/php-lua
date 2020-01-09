@@ -290,6 +290,10 @@ static int php_lua_call_callback(lua_State *L) {
 		}
 
 		call_user_function(EG(function_table), NULL, func, &retval, arg_num, params);
+		if (EG(exception)) {
+			/* bail out on exception */
+			return lua_error(L);
+		}
 		php_lua_send_zval_to_lua(L, &retval);
 
 		for (i = 0; i<arg_num; i++) {
