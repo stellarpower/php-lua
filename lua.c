@@ -913,8 +913,8 @@ zend_function_entry lua_class_methods[] = {
 	PHP_ME(lua, loadstring,			arginfo_lua_loadstring, ZEND_ACC_PUBLIC)
 	PHP_ME(lua, call,				arginfo_lua_call,  		ZEND_ACC_PUBLIC)
 	PHP_ME(lua, assign,				arginfo_lua_assign,		ZEND_ACC_PUBLIC)
-	PHP_ME(lua, getVersion,			NULL, 					ZEND_ACC_PUBLIC|ZEND_ACC_ALLOW_STATIC)
-	PHP_ME(lua, getVersionInt,		NULL, 					ZEND_ACC_PUBLIC|ZEND_ACC_ALLOW_STATIC|ZEND_ACC_STATIC)
+	PHP_ME(lua, getVersion,			NULL, 					ZEND_ACC_PUBLIC)
+	PHP_ME(lua, getVersionInt,		NULL, 					ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(lua, registerCallback,	arginfo_lua_register, 	ZEND_ACC_PUBLIC)
 	PHP_MALIAS(lua, __call, call, 	arginfo_lua_call,		ZEND_ACC_PUBLIC)
 	PHP_FE_END
