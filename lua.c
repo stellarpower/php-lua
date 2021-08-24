@@ -317,7 +317,7 @@ static int php_lua_call_callback(lua_State *L) {
 			// and pass it to PHP if Lua didn't handle this error. Let's try with the ideal approach somewhere later
 			zend_clear_exception();
 
-			zend_call_method_with_0_params(&exception, Z_OBJCE_P(&exception), NULL, "getmessage", &tmp);
+			zend_call_method_with_0_params(Z_OBJ_P(&exception), Z_OBJCE_P(&exception), NULL, "getmessage", &tmp);
 			if (Z_TYPE(tmp) != IS_STRING) {
 				zend_error(E_WARNING, "%s::getMessage() must return a string", ZSTR_VAL(Z_OBJCE_P(&exception)->name));
 				lua_pushfstring(L, "Exception of type %s has been thrown in PHP", ZSTR_VAL(Z_OBJCE_P(&exception)->name));
