@@ -42,8 +42,8 @@ var_dump($l->call(array("math", "cos"),  array(pi())));
 echo "\n";
 
 try {
-$l->notexisting(2423);
-$l->call(array("math", "sin", "function"), array(432, 342));
+  $l->notexisting(2423);
+  $l->call(array("math", "sin", "function"), array(432, 342));
 
 } catch (LuaException $e) {
 	echo $e->getMessage();
@@ -58,8 +58,15 @@ echo "\n";
 
 var_dump($l->__call("multiret", array()));
 
-$l->__call("print");
+echo "\nusing Lua->__call(print)\n";
+$l->__call("print", []);
 $l->__call("print", array("foo"));
+
+echo "\nusing Lua->print()\n";
+
+$l->print(); // same as $l->__call("print", []);
+$l->print("foo\n"); // same as $l->__call("print", array("foo"));
+
 ?>
 --EXPECTF--
 Hello world!
@@ -92,4 +99,8 @@ array(3) {
   [2]=>
   string(1) "c"
 }
+
+using Lua->__call(print)
+foo
+using Lua->print()
 foo

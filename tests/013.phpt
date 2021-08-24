@@ -6,9 +6,9 @@ PHP Closures from Lua
 <?php 
 
 $l = new lua();
-$l->eval(<<<CODE
+$l->eval(<<<'CODE'
 function test(cb1)
-    local cb2 = cb1("called from lua")
+    local cb2 = cb1("called from lua\n")
     cb2("returned from php")
 end
 CODE
@@ -27,4 +27,5 @@ try {
 }
 ?>
 --EXPECTF--
-called from luareturned from php
+called from lua
+returned from php
