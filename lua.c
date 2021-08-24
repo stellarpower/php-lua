@@ -229,46 +229,46 @@ zend_object *php_lua_create_object(zend_class_entry *ce)
 
 /** {{{ static zval * php_lua_read_property(zval *object, zval *member, int type)
 */
-zval *php_lua_read_property(zval *object, zval *member, int type, void **cache_slot, zval *rv){
-	lua_State *L = (Z_LUAVAL_P(object))->L;
-	zend_string *str_member;
+zval *php_lua_read_property(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv){
+	lua_State *L = php_lua_obj_from_obj(object)->L;
 
 	if (type != BP_VAR_R) {
 		ZVAL_NULL(rv);
 		return rv;
 	}
 
-	str_member = zval_get_string(member);
 #if (LUA_VERSION_NUM < 502)
-	lua_getfield(L, LUA_GLOBALSINDEX, ZSTR_VAL(str_member));
+	lua_getfield(L, LUA_GLOBALSINDEX, ZSTR_VAL(member));
 #else
-	lua_getglobal(L, ZSTR_VAL(str_member));
+	lua_getglobal(L, ZSTR_VAL(member));
 #endif
-	zend_string_release(str_member);
 
-	php_lua_get_zval_from_lua(L, -1, object, rv);
+	zval lua_zval_object;
+	ZVAL_OBJ(&lua_zval_object, object);
+
+	php_lua_get_zval_from_lua(L, -1, &lua_zval_object, rv);
 	lua_pop(L, 1);
+
 	return rv;
 }
 /* }}} */
 
 /** {{{ static void php_lua_write_property(zval *object, zval *member, zval *value)
 */
-static void php_lua_write_property(zval *object, zval *member, zval *value, void ** key) {
-	lua_State *L = (Z_LUAVAL_P(object))->L;
-	zend_string *str_member = zval_get_string(member);
+static zval* php_lua_write_property(zend_object *object, zend_string *member, zval *value, void ** key) {
+	lua_State *L = php_lua_obj_from_obj(object)->L;
 
 #if (LUA_VERSION_NUM < 502)
-	php_lua_send_zval_to_lua(L, member);
+	lua_pushlstring(L, ZSTR_VAL(val), ZSTR_LEN(val));
 	php_lua_send_zval_to_lua(L, value);
 
 	lua_settable(L, LUA_GLOBALSINDEX);
 #else
 	php_lua_send_zval_to_lua(L, value);
-	lua_setglobal(L, Z_STRVAL_P(member));
+	lua_setglobal(L, ZSTR_VAL(member));
 #endif
 
-	zend_string_release(str_member);
+	return value;
 }
 /* }}} */
 
