@@ -363,7 +363,7 @@ zval *php_lua_get_zval_from_lua(lua_State *L, int index, zval *lua_obj, zval *rv
 		case LUA_TNUMBER:
 #if LUA_VERSION_NUM >= 503
 			if (lua_isinteger(L, index)) {
-				ZVAL_LONG(rv, lua_tonumber(L, index));
+				ZVAL_LONG(rv, lua_tointeger(L, index));
 			} else {
 				ZVAL_DOUBLE(rv, lua_tonumber(L, index));
 			}
