@@ -52,6 +52,7 @@ extern zend_module_entry lua_module_entry;
 
 struct _php_lua_object {
   lua_State *L;
+  zval callbacks;
   zend_object obj;
 };
 
@@ -64,8 +65,8 @@ static inline php_lua_object *php_lua_obj_from_obj(zend_object *obj) {
 #define Z_LUAVAL(obj)   php_lua_obj_from_obj(Z_OBJ((obj)))
 #define Z_LUAVAL_P(obj) php_lua_obj_from_obj(Z_OBJ_P((obj)))
 
-zval *php_lua_get_zval_from_lua(lua_State *L, int index, zval *lua_obj, zval *rv);
-int php_lua_send_zval_to_lua(lua_State *L, zval *val);
+zval *php_lua_get_zval_from_lua(lua_State *L, int index, zval *lua_obj_zval, zval *rv);
+int php_lua_send_zval_to_lua(php_lua_object *lua_obj, zval *val);
 
 PHP_MINIT_FUNCTION(lua);
 PHP_MSHUTDOWN_FUNCTION(lua);
