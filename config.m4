@@ -7,6 +7,8 @@ PHP_ARG_WITH(lua-version, to specify a custom lua version, [  --with-lua-version
 if test "$PHP_LUA" != "no"; then
   if test -r $PHP_LUA/include/lua.h; then
     LUA_INCLUDE_DIR=$PHP_LUA/include
+  elif test -r $PHP_LUA/include/lua/lua.h; then
+    LUA_INCLUDE_DIR=$PHP_LUA/include/lua
   else
     AC_MSG_CHECKING(for lua in default path)
     for i in /usr/local /usr; do
