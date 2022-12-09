@@ -107,7 +107,7 @@ PHP_METHOD(lua_closure, invoke) {
 	if (ZEND_NUM_ARGS()) {
 		int i = 0;
 		for(;i<ZEND_NUM_ARGS();i++) {
-			php_lua_send_zval_to_lua(L, &arguments[i]);
+			php_lua_send_zval_to_lua(Z_LUAVAL(objval->lua), &arguments[i]);
 		}
 	}
 
@@ -167,6 +167,20 @@ static void php_lua_closure_free_obj(zend_object *zobj) /* {{{ */
 	zend_object_std_dtor(zobj);
 } /* }}} */
 
+static HashTable * php_lua_closure_get_gc(zend_object *object, zval **table, int *n) /* {{{ */
+{
+	lua_closure_object *objval = php_lua_closure_object_from_zend_object(object);
+
+	zend_get_gc_buffer *gc_buffer = zend_get_gc_buffer_create();
+
+	zend_get_gc_buffer_add_zval(gc_buffer, &objval->lua);
+
+	zend_get_gc_buffer_use(gc_buffer, table, n);
+
+	return zend_std_get_properties(object);
+
+}
+
 zend_object *php_lua_closure_create_object(zend_class_entry *ce) /* {{{ */
 {
 	lua_closure_object *objval = ecalloc(1, sizeof(lua_closure_object) + zend_object_properties_size(ce));
@@ -191,6 +205,7 @@ void php_lua_closure_register() /* {{{ */
 	lua_closure_handlers.offset = XtOffsetOf(lua_closure_object, std);
 	lua_closure_handlers.clone_obj = NULL;
 	lua_closure_handlers.free_obj = php_lua_closure_free_obj;
+	lua_closure_handlers.get_gc = php_lua_closure_get_gc;
 } /* }}} */
 
 zend_class_entry *php_lua_get_closure_ce() /* {{{ */
