@@ -20,7 +20,7 @@ $l->test(array("key1"=>"v1",
                 "key2"=>"v2"));
 
 
-
+?>
 --EXPECT--
 array(2) {
   ["key1"]=>
