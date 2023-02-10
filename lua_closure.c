@@ -162,8 +162,14 @@ static void php_lua_closure_free_obj(zend_object *zobj) /* {{{ */
 	if ((Z_TYPE(objval->lua) == IS_OBJECT) &&
 		instanceof_function(Z_OBJCE(objval->lua), lua_ce)) {
 		luaL_unref((Z_LUAVAL(objval->lua))->L, LUA_REGISTRYINDEX, objval->closure);
+		objval->closure = LUA_NOREF;
 	}
-	zval_dtor(&(objval->lua));
+
+	if (!Z_ISUNDEF(objval->lua)) {
+		zval_dtor(&objval->lua);
+		ZVAL_UNDEF(&objval->lua);
+	}
+
 	zend_object_std_dtor(zobj);
 } /* }}} */
 
@@ -171,14 +177,15 @@ static HashTable * php_lua_closure_get_gc(zend_object *object, zval **table, int
 {
 	lua_closure_object *objval = php_lua_closure_object_from_zend_object(object);
 
-	zend_get_gc_buffer *gc_buffer = zend_get_gc_buffer_create();
+	if (!Z_ISUNDEF(objval->lua)) {
+		*table = &objval->lua;
+		*n = 1;
+	} else {
+		*table = NULL;
+		*n = 0;
+	}
 
-	zend_get_gc_buffer_add_zval(gc_buffer, &objval->lua);
-
-	zend_get_gc_buffer_use(gc_buffer, table, n);
-
-	return zend_std_get_properties(object);
-
+	return NULL;
 }
 
 zend_object *php_lua_closure_create_object(zend_class_entry *ce) /* {{{ */
@@ -188,6 +195,9 @@ zend_object *php_lua_closure_create_object(zend_class_entry *ce) /* {{{ */
 
 	zend_object_std_init(zobj, ce);
 	zobj->handlers = &lua_closure_handlers;
+	
+	objval->closure = LUA_NOREF;
+	ZVAL_UNDEF(&objval->lua);
 	
 	return zobj;
 } /* }}} */

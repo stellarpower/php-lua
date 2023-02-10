@@ -191,9 +191,10 @@ static void * php_lua_alloc_function(void *ud, void *ptr, size_t osize, size_t n
 static void php_lua_dtor_object(zend_object *object) /* {{{ */ {
 	php_lua_object *lua_obj = php_lua_obj_from_obj(object);
 
-	zend_hash_clean(HASH_OF(&lua_obj->callbacks));
-
-	zend_object_std_dtor(&(lua_obj->obj));
+	// We also should not clean `lua_obj->callbacks' here
+	// it will break the cycle detection (see php_lua_get_gc) and even can cause 
+	// segfault: this method can be called when the cycle when this object is gets collected
+	// and we can start cleaning the object in a non-determined state
 }
 /* }}} */
 
@@ -205,21 +206,30 @@ static void php_lua_free_object(zend_object *object) /* {{{ */ {
 		lua_obj->L = NULL;
 	}
 
-	zval_ptr_dtor(&lua_obj->callbacks);
+	if (!Z_ISUNDEF(lua_obj->callbacks)) {
+		zval_ptr_dtor(&lua_obj->callbacks);
+		ZVAL_UNDEF(&lua_obj->callbacks);
+	}
 
 	zend_object_std_dtor(&lua_obj->obj);
+
+	// not freeing the lua_obj itself here:
+	// free_obj should release any resources the object holds, without freeing the object structure itself. 
+	// https://www.phpinternalsbook.com/php7/classes_objects/object_handlers.html
 }
 
 static HashTable * php_lua_get_gc(zend_object *object, zval **table, int *n) {
 	php_lua_object *lua_obj = php_lua_obj_from_obj(object);
 
-	zend_get_gc_buffer *gc_buffer = zend_get_gc_buffer_create();
+	if (!Z_ISUNDEF(lua_obj->callbacks)) {
+		*table = &lua_obj->callbacks;
+		*n = 1;
+	} else {
+		*table = NULL;
+		*n = 0;
+	}
 
-	zend_get_gc_buffer_add_zval(gc_buffer, &lua_obj->callbacks);
-
-	zend_get_gc_buffer_use(gc_buffer, table, n);
-
-	return zend_std_get_properties(object);
+	return NULL;
 }
 
 /* }}} */
@@ -991,7 +1001,7 @@ PHP_MINIT_FUNCTION(lua) {
 	lua_object_handlers.write_property = php_lua_write_property;
 	lua_object_handlers.read_property  = php_lua_read_property;
 
-	lua_ce->ce_flags |= ZEND_ACC_FINAL  | ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	lua_ce->ce_flags |= ZEND_ACC_FINAL | ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	zend_declare_class_constant_string(lua_ce, ZEND_STRL("LUA_VERSION"), LUA_RELEASE);
 
